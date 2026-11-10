@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.FontWeight
 import androidx.compose.ui.unit.dp
 import com.narezany.strikearena.model.*
 import com.narezany.strikearena.network.EloMqtt
@@ -36,7 +35,7 @@ fun StrikeArenaApp() {
     var lanStatus by remember { mutableStateOf("") }
     var lanConnected by remember { mutableStateOf(false) }
     var myIp by remember { mutableStateOf(getLocalIp()) }
-    var eloEntries by remember { mutableStateListOf<Pair<String, Int>>() }
+    var eloEntries = remember { mutableStateListOf<Pair<String, Int>>() }
     var yourElo by remember { mutableIntStateOf(1000) }
     var eloStatus by remember { mutableStateOf("") }
     var eloConnected by remember { mutableStateOf(false) }
@@ -53,11 +52,20 @@ fun StrikeArenaApp() {
             val idx = eloEntries.indexOfFirst { it.first == name }
             if (idx >= 0) eloEntries[idx] = Pair(name, entry.elo)
             else eloEntries.add(Pair(name, entry.elo))
-            eloEntries = eloEntries.sortedByDescending { it.second }
+            eloEntries.clear()
+            eloEntries.addAll(eloEntries.sortedByDescending { it.second })
             val me = eloEntries.firstOrNull { it.first == localName }
             if (me != null) yourElo = me.second
         }
         eloMqtt.onStatus = { eloStatus = it; eloConnected = it.contains("онлайн") }
+    }
+
+    fun startGame() {
+        engine.setLocal(localName, localSkin, localWeapon, deviceId)
+        engine.start(mode, 800f, 600f, botSettings, eloEnabled)
+        if (mode != GameMode.VersusBot && lan.isHost) {
+            lan.broadcast(LanMsg.StartGame)
+        }
     }
 
     // ---------- ЛАН (единый обработчик сообщений) ----------
@@ -264,7 +272,7 @@ fun ModeSelectScreen(
                 val selected = comp == t.first
                 Button(onClick = { comp = t.first },
                     colors = ButtonDefaults.buttonColors(containerColor = if (selected) Color(0xFFFF6B1A.toInt()) else Color(0xFF161B26.toInt()))) {
-                    Text(text = t.second, color = Color.Black, fontWeight = FontWeight.Bold)
+                    Text(text = t.second, color = Color.Black)
                 }
             }
         }
@@ -272,11 +280,11 @@ fun ModeSelectScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(onClick = { onStartBot(dif, cnt) }, modifier = Modifier.width(210.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF161B26.toInt()))) {
-                Text(text = "ПРОТИВ БОТА", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(text = "ПРОТИВ БОТА", color = Color.White)
             }
             Button(onClick = { onStartLan(dif, cnt, comp) }, modifier = Modifier.width(210.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF161B26.toInt()))) {
-                Text(text = "ЧЕРЕЗ LAN", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(text = "ЧЕРЕЗ LAN", color = Color.White)
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
