@@ -1,5 +1,6 @@
 package com.narezany.strikearena.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
@@ -8,8 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.IntOffset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.narezany.strikearena.model.*
+import com.narezany.strikearena.network.EloMqtt
+import com.narezany.strikearena.network.LanNetwork
 import kotlin.math.*
 
 @Composable
@@ -42,7 +48,7 @@ fun GameScreen(
     LaunchedEffect(Unit) {
         while (true) {
             val now = System.currentTimeMillis()
-            val dt = ((now - last).coerceIn(5, 50).toDouble() / 1000.0)
+            val dt = ((now - last).coerceIn(5.0, 50.0).toDouble() / 1000.0)
             last = now
             engine.tick(dt, now)
             engine.respawnIfNeeded(now)
@@ -76,7 +82,7 @@ fun GameScreen(
     Column(
         modifier = Modifier.fillMaxSize().background(Color(0xFF0B0F19.toInt())),
     ) {
-        // арена (псевдо-поля через Box)
+        // арена
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -102,7 +108,7 @@ fun GameScreen(
         // управление (кнопки вместо джойстиков — без pointerInput)
         Row(
             modifier = Modifier.fillMaxWidth().height(120.dp).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             MoveButtons(onDirectionChange = { dx, dy ->
@@ -117,7 +123,7 @@ fun GameScreen(
             contentAlignment = Alignment.TopEnd,
         ) {
             IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.Default.Menu, contentDescription = "Меню", tint = Color.White)
+                Icon(imageVector = Icons.Default.Close, contentDescription = "Меню", tint = Color.White)
             }
         }
 
@@ -149,7 +155,7 @@ private fun GameField(session: GameSession, me: Player) {
         for (b in session.bullets) {
             BulletView(bullet = b, me = me)
         }
-        // игроки
+        // игроки (кроме себя)
         for (p in session.players.values.filter { it.alive && p.id != me.id }) {
             PlayerView(player = p, me = me, isLocal = false)
         }
@@ -160,8 +166,8 @@ private fun GameField(session: GameSession, me: Player) {
 
 private fun ox(p: Player, me: Player): Float = (p.x - me.x) + 200f
 private fun oy(p: Player, me: Player): Float = (p.y - me.y) + 150f
-private fun obx(b: com.narezany.strikearena.model.Bullet, me: Player): Float = (b.x - me.x) + 200f
-private fun oby(b: com.narezany.strikearena.model.Bullet, me: Player): Float = (b.y - me.y) + 150f
+private fun obx(b: Bullet, me: Player): Float = (b.x - me.x) + 200f
+private fun oby(b: Bullet, me: Player): Float = (b.y - me.y) + 150f
 
 @Composable
 private fun PlayerView(player: Player, me: Player, isLocal: Boolean) {
@@ -195,9 +201,9 @@ private fun PlayerView(player: Player, me: Player, isLocal: Boolean) {
 }
 
 @Composable
-private fun BotView(bot: com.narezany.strikearena.model.Bot, me: Player) {
+private fun BotView(bot: Bot, me: Player) {
     PlayerView(
-        player = com.narezany.strikearena.model.Player(
+        player = Player(
             id = bot.id, name = "Бот", color = bot.color, weaponId = bot.weaponId,
             hp = bot.hp, maxHp = bot.maxHp, ammo = 0, maxAmmo = 0,
             score = 0, kills = 0, deaths = 0,
@@ -206,7 +212,7 @@ private fun BotView(bot: com.narezany.strikearena.model.Bot, me: Player) {
 }
 
 @Composable
-private fun BulletView(bullet: com.narezany.strikearena.model.Bullet, me: Player) {
+private fun BulletView(bullet: Bullet, me: Player) {
     Box(
         modifier = Modifier
             .size(6.dp)
@@ -285,7 +291,7 @@ private fun EndScreen(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(text = if (session.winner == me.id) "ПОБЕДА!" else "ПРОИГРЫШ",
-                    style = TextStyle(fontSize = 32.sp, fontWeight = androidx.compose.ui.text.FontWeight.Bold,
+                    style = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.Bold,
                         color = if (session.winner == me.id) Color(0xFF2ECC71.toInt()) else Color(0xFFE74C3C.toInt())))
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(text = "УБИЙСТВ: ${me.kills}   СМЕРТЕЙ: ${me.deaths}   СЧЁТ: ${me.score}",

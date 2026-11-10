@@ -1,5 +1,6 @@
 package com.narezany.strikearena.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -8,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.FontWeight
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.narezany.strikearena.model.*
 import java.net.NetworkInterface
@@ -76,15 +76,6 @@ fun LobbyScreen(
             Text(text = "НАЗАД", color = Color.White)
         }
     }
-}
-
-@Composable
-private fun localIpText(): String {
-    var ip by remember { mutableStateOf("?" ) }
-    LaunchedEffect(Unit) {
-        ip = getLocalIp()
-    }
-    return ip
 }
 
 fun getLocalIp(): String {
@@ -171,7 +162,8 @@ private fun EloRow(rank: Int, name: String, elo: Int, isYou: Boolean) {
         Text(text = "$rank.", style = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF9AA5B1.toInt())), modifier = Modifier.width(32.dp))
         Box(
             modifier = Modifier.size(32.dp)
-                .background(if (isYou) Color(0xFFFF6B1A.toInt()) else Color(0xFF121721.toInt()), shape = CircleShape),
+                .background(if (isYou) Color(0xFFFF6B1A.toInt()) else Color(0xFF121721.toInt()))
+                .wrapContentSize(),
             contentAlignment = Alignment.Center,
         ) {
             Text(text = name.first().uppercase(), color = Color.Black, fontWeight = FontWeight.Bold)
