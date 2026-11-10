@@ -18,12 +18,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK command-line tools
+        run: |
+          mkdir -p "$HOME/android-sdk/cmdline-tools/latest"
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O /tmp/cmdtools.zip
+          unzip -q /tmp/cmdtools.zip -d /tmp/ct
+          mv /tmp/ct/cmdline-tools/* "$HOME/android-sdk/cmdline-tools/latest/"
+          export ANDROID_HOME="$HOME/android-sdk"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses >/dev/null
+          sdkmanager --sdk_root="$ANDROID_HOME" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build debug APK
         env:
-          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle
+          ANDROID_HOME: "$HOME/android-sdk"
+          GRADLE_USER_HOME: "$HOME/.gradle"
         run: ./gradlew assembleDebug
 
       - name: Upload APK artifact
