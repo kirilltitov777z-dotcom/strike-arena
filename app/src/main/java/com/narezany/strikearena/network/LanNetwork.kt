@@ -80,7 +80,7 @@ class LanNetwork(private val uiHandler: Handler) : Closeable {
                                 clients[id] = ClientLink(s, oos, ois)
                                 clientOuts[id] = oos
                                 uiHandler.post { onClientConnected?.invoke(id) }
-                                broadcast(Join(msg.name, msg.skin, msg.weapon), exclude = id)
+                                broadcast(Join(msg.id, msg.name, msg.skin, msg.weapon), exclude = id)
                                 uiHandler.post { onMessage?.invoke(msg) }
                             } else {
                                 uiHandler.post { onMessage?.invoke(msg) }
