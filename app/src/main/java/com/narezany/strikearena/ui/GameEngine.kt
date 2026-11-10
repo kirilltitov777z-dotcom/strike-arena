@@ -7,7 +7,7 @@ import java.util.UUID
 
 /** Игровой движок (аутorité для хоста и для локальной сессии против бота). */
 class GameEngine {
-    private val session = GameSession()
+    val session = GameSession()
     val getSession: GameSession
         get() = session
 
