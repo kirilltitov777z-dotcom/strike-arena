@@ -35,6 +35,7 @@ jobs:
           GRADLE_USER_HOME: "$HOME/.gradle"
         run: |
           chmod +x gradlew
+          unset ANDROID_SDK_ROOT
           ./gradlew assembleDebug
 
       - name: Upload APK artifact
