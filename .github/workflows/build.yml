@@ -32,9 +32,10 @@ jobs:
 
       - name: Build debug APK
         env:
-          ANDROID_HOME: "$HOME/android-sdk"
           GRADLE_USER_HOME: "$HOME/.gradle"
-        run: ./gradlew assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
